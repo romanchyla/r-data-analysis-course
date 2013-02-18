@@ -1,0 +1,344 @@
+Exploratory analysis
+========================================================
+
+### Load libraries
+
+```{r}
+```
+
+Download the data, read the data in and save the raw data as an RDA file
+
+```{r loansData, cache=TRUE}
+setwd("/dvt/workspace/r-data-analysis-course/assignment-1/work")
+getwd()
+download.file("https://spark-public.s3.amazonaws.com/dataanalysis/loansData.csv",destfile="./data/raw/loansData.csv",method="curl")
+dateDownloaded <- date()
+dateDownloaded
+loansData <- read.csv('./data/raw/loansData.csv')
+save(loansData,dateDownloaded,file="./data/raw/loansData.rda")
+```
+
+### Fix incorrect types
+```{r dependson="loansData"}
+loansData$Interest.Rate <- sapply(loansData$Interest.Rate, function(x) as.numeric(sub("%", "", x)))
+loansData$Debt.To.Income.Ratio <- sapply(loansData$Debt.To.Income.Ratio, function(x) as.numeric(sub("%", "", x)))
+```
+
+### Look at the data set
+
+```{r}
+str(loansData)
+sapply(loansData, summary)
+```
+
+### Find out about missing values
+```{r, dependson="loansData"}
+sum(is.na(loansData))
+loansData <- loansData[complete.cases(loansData),]
+```
+
+### Explore the suspiscious columns
+```{r, dependson="loansData"}
+hd <- hist(loansData$Monthly.Income, breaks=100)
+print(hd$counts)
+# Monthly needs transformation
+hd <- hist(log(loansData$Monthly.Income), breaks=100)
+max(loansData$Monthly.Income, na.rm=T)
+```
+There is one monthly income which seems extremely high, probably a mistake?
+
+```{r}
+suspi <- subset(loansData, Monthly.Income == max(loansData$Monthly.Income, na.rm=T))
+print(suspi)
+suspi$Monthly.Income / suspi$Amount.Funded.By.Investors
+```
+The percentage of gross income that goes into paying the debt is small, which indicates that the person may really have a big income. Though some others do have smaller ratios.
+
+
+## Exploratory analysis
+
+### Make some univariate plots/summaries
+
+```{r, dependson="loansData"}
+loansData$FICO <- sapply(as.character(loansData$FICO.Range), function(s) as.numeric(substr(s, 0, 3)))
+
+# interest rate seems interesting
+hist(loansData$Interest.Rate, breaks=100)
+# as if there were two distributions...
+hist(log10(loansData$Interest.Rate), breaks = 100, prob=T)
+
+# this is interesting, there is a 'required' minimum
+hist(loansData$FICO, breaks=100)
+# log transformation doesnt change it (so it is cutoff)
+hist(log(loansData$FICO), breaks=100)
+
+# is this increasing lineary? it seems like...
+quantile(loansData$FICO, na.rm=T, probs=seq(0, 1, 0.05))
+
+# investors obviously prefer borrowers who don't have too
+# high ratio of indebtness, but it is not too strong
+hist(loansData$Debt.To.Income.Ratio)
+
+# and few credit lines
+hist(loansData$Open.CREDIT.Lines, breaks=100)
+hist(as.numeric(cut(loansData$Open.CREDIT.Lines, breaks=seq(0,30,1))))
+
+# what was requrested was granted, hmm....
+par(mfcol=c(2,1))
+par(mar=c(2.5,2.5,1.6,1.1),mgp=c(1.5,.5,0))
+hist(loansData$Amount.Requested, breaks=100)
+hist(loansData$Amount.Funded.By.Investors, breaks=100)
+par(mfcol=c(1,1))
+
+# my understanding is that only borrowers who do not
+# already own too much, are welcomed
+# TODO: look at the relationship between CB ~ FICO
+quantile(loansData$Revolving.CREDIT.Balance, na.rm=T, probs=seq(0, 1, 0.05))
+hist(loansData$Revolving.CREDIT.Balance, breaks=100)
+# needs transformation...
+hist(log(loansData$Revolving.CREDIT.Balance), breaks=100)
+
+# TODO: has employment have any effect on the interest?
+hist(as.numeric(loansData$Employment.Length), breaks=100)
+
+
+
+quantile(loansData$Interest.Rate)
+quantile(loansData$Monthly.Income, na.rm=T, probs=seq(0, 1, 0.05))
+
+
+```
+
+So it seems that FICO must be > 650 for the loan to be approved. And we have got some terms to check for relations
+
+
+### Check out relationship with Interest Rate (IR)
+```{r, dependson="loansData"}
+ir <- loansData$Interest.Rate
+par(las=3)
+par(mar=c(6,2,1,1))
+boxplot(ir ~ loansData$Loan.Purpose )
+boxplot(ir ~ loansData$Home.Ownership)
+
+# a linear relationn between IR an FICO?
+boxplot(ir ~ loansData$FICO.Range)
+
+# no relation between IR and Employment length
+boxplot(ir ~ loansData$Employment.Length)
+
+# IR clearly depends on the length (which is logical, but
+# it is interesting that shorter terms have lower IR)
+boxplot(ir ~ loansData$Loan.Length)
+
+# am i seeing that poorer will get higher IRs? and richer pay less?
+boxplot(ir ~ cut(loansData$Debt.To.Income.Ratio, breaks=seq(0,max(loansData$Debt.To.Income.Ratio, na.rm=T),max(loansData$Debt.To.Income.Ratio, na.rm=T)/20)))
+# different cut
+boxplot(ir ~ cut(loansData$Debt.To.Income.Ratio, breaks=10))
+
+# there seems to be no relation with CB
+boxplot(ir ~ cut(loansData$Revolving.CREDIT.Balance, breaks=20))
+
+# this might be just reflection of the fact that 'poorer' people 
+# have worse credit ratings, need more money and ask moore often for
+# credit ratings, but look at how many outliers are for 0'th group
+boxplot(ir ~ loansData$Inquiries.in.the.Last.6.Months)
+
+# finally, IR may depend on the ammount requested
+plot(y=loansData$Interest.Rate, x=loansData$Amount.Requested, log="xy")
+
+# also Dept to income ratio may represent a linear relationship
+plot(y=loansData$Interest.Rate, x=loansData$Debt.To.Income.Ratio, log="y")
+
+# but there is no relationship with monthly income
+plot(y=loansData$Interest.Rate, x=loansData$Monthly.Income, log="xy")
+lm1 <- lm(log(ir) ~ log(loansData$Monthly.Income))
+summary(lm1)
+
+# but there might be with the Revolving credit balance
+plot(y=log(loansData$Interest.Rate+1), x=log(loansData$Revolving.CREDIT.Balance+1))
+
+lm1 <- lm(log(loansData$Interest.Rate+1) ~ log(loansData$Revolving.CREDIT.Balance+1))
+summary(lm1)
+```
+
+
+## Modeling
+
+
+## Fit a basic model relating IR to other vars, namely
+
+ * FICO (maybe cut by quantiles)
+ * Debt.To.Income.Ratio
+ * Open.CREDIT.Lines [found not interesting]
+ * Credit.Balance
+ * Loan.Length
+ * Ownership (but only for the category NONE?)
+ * Purpose (especially: educational, car, renevable_energy)
+
+TODO: look at relation between Credit.Balance ~ FICO
+
+```{r, dependson="loansData"}
+
+# FICO Good!
+ir <- loansData$Interest.Rate
+lmFico <- lm(ir ~ loansData$FICO.Range)
+summary(lmFico)
+
+# much bettter! select the median value as a base point
+lmFico <- lm(ir ~ relevel(loansData$FICO.Range, ref="700-704"))
+summary(lmFico)
+
+# Debt.To.Income.Ratio Good!
+lmDebRatio <- lm(ir ~ cut(loansData$Debt.To.Income.Ratio, breaks=20))
+summary(lmDebRatio)
+
+
+# maybe useful - but should be alredy inside FICO
+lmOcr <- lm(ir ~ cut(loansData$Open.CREDIT.Lines, breaks=10))
+summary(lmOcr)
+confint(lmOcr)
+
+# definitely incorporate Loan.Length
+lmLen <- lm(ir ~ loansData$Loan.Length)
+summary(lmLen)
+
+# not sure, shall we?
+levels(loansData$Home.Ownership)
+lmHome <- lm(ir ~ loansData$Home.Ownership)
+summary(lmHome)
+
+# Revolving Credit balence: good!
+lmBal <- lm(ir ~ log(loansData$Revolving.CREDIT.Balance + 1))
+summary(lmBal)
+
+# some categories of the Purpose are significant
+# car, credit_card, debt_consolidation, house, moving
+# other, small_business
+levels(loansData$Loan.Purpose)
+lmPurp <- lm(ir ~ loansData$Loan.Purpose)
+summary(lmPurp)
+
+# anova
+anova(lmPurp)
+# trying to use Tukey to see which combination is strong
+#lmt <- aov(lmPurp)
+#TukeyHSD(lmt)
+```
+
+## Plot the observed ('black') and fitted ('red') points
+
+```{r, dependson="loansData"}
+
+plot(loansData$FICO.Range, ir)
+points(loansData$FICO.Range,lmFico$fitted.values,pch=19,col="red")
+
+
+loans <- loansData
+loans$FICO.Ordered <- relevel(loans$FICO.Range, ref="700-704")
+loans$logBalance <- log10(loans$Revolving.CREDIT.Balance + 1)
+loans$logIncome <- log10(loansData$Monthly.Income + 1)
+
+ir <- loans$Interest.Rate
+
+pdf(file="./figures/finalfigure.pdf", height=8, width=3*4)
+
+
+par(mfrow=c(2,2))
+
+lm1 <- lm(ir ~ loans$FICO)
+summary(lm1)
+confint(lm1)
+plot(loans$FICO, ir, xlab="Credit Score",ylab="Interest Rate")
+#points(lm1$fitted.values, col="red", pch=19)
+abline(lm1, col="red", lw=3)
+
+lm1 <- lm(ir ~ loans$Loan.Length)
+summary(lm1)
+confint(lm1)
+plot(loans$Loan.Length, ir, xlab="Loan Length",ylab="Interest Rate")
+abline(lm1, col="red", lw=3)
+#points(lm1$fitted.values, col="red", pch=19)
+
+
+lm1 <- lm(ir ~ loans$Amount.Requested)
+summary(lm1)
+confint(lm1)
+plot(loans$Amount.Requested, ir, xlab="Amount requested",ylab="Interest Rate")
+#points(lm1$fitted.values, col="red", pch=19)
+abline(lm1, col="red", lw=3)
+
+lm1 <- lm(ir ~ log10(loans$Revolving.CREDIT.Balance + 1))
+summary(lm1)
+confint(lm1)
+plot(log10(loans$Revolving.CREDIT.Balance), ir, xlab="Revolving credit balance (log scale)",ylab="Interest Rate")
+abline(lm1, col="red", lw=3)
+
+lm1 <- lm(ir ~ loans$Open.CREDIT.Lines + loans$FICO.Ordered)
+summary(lm1)
+confint(lm1)
+plot(loans$Open.CREDIT.Lines, ir, xlab="Credit inquiries (past 6 months)",ylab="Interest Rate")
+#points(lm1$fitted.values, col="red", pch=19)
+abline(lm1, col="red", lw=3)
+dev.off()
+
+lm1 <- lm(ir ~ log10(loans$Amount.Requested + 1))
+summary(lm1)
+confint(lm1)
+plot(log10(loans$Revolving.CREDIT.Balance + 1), ir, xlab="Amount requested",ylab="Interest Rate")
+abline(lm1, col="red", lw=3)
+
+
+
+lm1 <- lm(ir ~ log10(loans$Revolving.CREDIT.Balance + 1))
+summary(lm1)
+confint(lm1)
+plot(log10(loans$Revolving.CREDIT.Balance), ir)
+abline(lm1, col="red", lw=3)
+points(lm1$fitted.values, col="red", pch=19)
+
+lm1 <- lm(ir ~ loans$FICO.Ordered + loans$logIncome)
+summary(lm1)
+confint(lm1)
+plot(loans$logIncome, ir)
+points(lm1$fitted.values, col="red", pch=19)
+
+lm1 <- lm(ir ~ log10(loans$Revolving.CREDIT.Balance + 1))
+summary(lm1)
+confint(lm1)
+plot(log10(loans$Revolving.CREDIT.Balance), ir, xlab="Revolving credit balance (log scale)",ylab="Interest Rate")
+abline(lm1, col="red", lw=3)
+
+
+plot(ir ~ loans$logIncome)
+abline(lm1)
+
+lm1 <- lm(ir ~ loans$logIncome + loans$Loan.Length + loans$Debt.To.Income.Ratio + loans$Revolving.CREDIT.Balance + loans$Open.CREDIT.Lines)
+summary(lm1)
+confint(lm1)
+
+lm1 <- lm(ir ~ loans$FICO.Ordered + loans$Loan.Length + loans$Debt.To.Income.Ratio + loans$Revolving.CREDIT.Balance + loans$Open.CREDIT.Lines + loans$logIncome)
+summary(lm1)
+plot(ir)
+```
+
+
+## Try to fit the multi-variate model
+
+```{r}
+lmFinal <- lm(ir ~ loans$FICO + loans$Loan.Length + loans$logIncome + loans$Amount.Requested + log(loans$Revolving.CREDIT.Balance + 1))
+summary(lmFinal)
+confint(lmFinal)
+#plot(lmFinal)
+#plot(ir, lmFinal$fitted.values,pch=19,col=loans$Loan.Purpose)
+#abline(c(lmFinal$coeff[1],lmFinal$coeff[2]),col="red",lwd=3)
+#lines(ir,lmFinal$fitted,col="black",lwd=3)
+
+#plot(lmFinal$fitted.values, ir)
+
+# this looks like the jleeks plots, but i don't know how to 
+# interpret them
+plot(loans$Interest.Rate,lmFinal$residuals,pch=19, col=loans$FICO)
+plot(loans$Interest.Rate,lmFinal$residuals,pch=19, col=loans$Loan.Length)
+plot(loans$Interest.Rate,lmFinal$residuals,pch=19, col=loans$Amount.Requested)
+
+```

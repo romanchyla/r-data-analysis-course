@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8" />
+<title>View Assessments | Data Analysis</title>
+<link rel="stylesheet" href="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/css/spark.main.css" />
+<link rel="stylesheet" href="https://www.coursera.org/maestro/api/course/294/course.css">
+<link rel="stylesheet" href="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/css/spark.hg.css" />
+<link rel="stylesheet" href="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/bundles/bootstrap-toggle-buttons/bootstrap-toggle-buttons.css" />
+
+<link rel="icon" href="https://spark-public.s3.amazonaws.com/dataanalysis/static/images/favicon.ico" />
+
+</head>
+
+<body>
+    <a href="#course-page-content" class="hidden">Skip Navigation</a>
+    <div class="hidden">
+        This page features MathJax technology to render mathematical formulae.
+        If you are using a screen reader, please visit <a href="http://www.dessci.com/en/products/mathplayer/">MathPlayer</a> to download the plugin for your browser. Please note that this is an Internet Explorer-only plugin at this time.
+    </div>
+
+    <h1 class="hidden">Data Analysis</h1>
+
+    
+    
+<div class="course-topbar container-fluid">
+
+    <div class="row-fluid">
+        
+        <div class="span3">
+          <a href="https://www.coursera.org/" class="course-topbar-logo"></a>
+        </div>
+
+        <div class="course-topbar-nav-container span9" style="float:right;">
+            <h2 class="hidden">Top Navigation Bar</h2>
+
+            <ul class="course-topbar-nav-list">
+                <li class="course-topbar-nav-list-item"><a href="https://www.coursera.org/courses/" target="_new">Courses</a></li>
+
+                
+                <li class="course-topbar-nav-list-item" data-popup="#course-topbar-aboutus" data-popup-bind-open="mouseenter" data-popup-direction="se" data-popup-close style="cursor:pointer;">
+                    <a>About <i class="icon-caret-down"></i></a>
+                </li>
+
+                                
+                <li class="course-topbar-nav-list-item" data-popup="#course-topbar-my" data-popup-bind-open="mouseenter" data-popup-close style="cursor:pointer;" data-popup-direction="se">
+                    <a data-user-id="2241819">Roman Chyla <i class="icon-caret-down"></i></a>
+                </li>
+                
+                            </ul>
+        </div>
+    </div>
+
+    <div id="course-topbar-aboutus" class="course-topbar-sublist">
+        <a class="course-topbar-sublist-item" href="https://www.coursera.org/about/jobs" target="_new">Jobs</a>
+        <a class="course-topbar-sublist-item" href="https://www.coursera.org/about/team" target="_new">Team</a>
+        <a class="course-topbar-sublist-item" href="https://www.coursera.org/about/contact" target="_new">Contact Us</a>
+        <a class="course-topbar-sublist-item" href="https://www.coursera.org/about/" target="_new">About Us</a>
+    </div>
+
+    <div id="course-topbar-my" class="course-topbar-sublist">
+        
+        <a class="course-topbar-sublist-item" href="https://www.coursera.org/" target="_new">Courses</a>
+        <a class="course-topbar-sublist-item" href="https://www.coursera.org/account/profile" target="_new">Profile</a>
+        <a class="course-topbar-sublist-item" href="https://www.coursera.org/account/records" target="_new">Course Records</a>
+        <a class="course-topbar-sublist-item" href="https://www.coursera.org/account/settings" target="_new">Settings</a>
+        <a class="course-topbar-sublist-item" href="https://class.coursera.org/dataanalysis-001/class/preferences">Course Preferences</a>
+        <a class="course-topbar-sublist-item" href="https://class.coursera.org/dataanalysis-001/auth/logout">Logout</a>
+    </div>
+
+</div>
+
+
+
+
+
+<style type="text/css">
+ 
+.course-topbar {
+  background-color: #4d4d4d;
+  box-shadow: inset 0px -6px 18px 0px rgba(0, 0, 0, 0.25);
+}
+
+.course-topbar-logo {
+   margin-top: 12px;
+   margin-left: 21px;
+}
+
+div.course-topbar-sublist {
+  border-top: solid 3e3e3e 1px;
+  background: #3e3e3e;
+}
+
+li.course-topbar-nav-list-item {
+  text-shadow 0px 1px rgba(0, 0, 0, 0.5);
+}
+
+.course-topbar-nav-container a {
+   color: #d4d4d4;
+}
+
+div.course-topbar-sublist a.course-topbar-sublist-item {
+  color: #d4d4d4;
+}
+
+
+.course-topbanner {
+  border-bottom: 1px solid #BCBEC0;
+  height: 71px;
+  box-shadow 0px 0px 1px 1px #ccc;
+  position: relative;
+  overflow: hidden;
+  background-color: white;
+}
+
+.course-topbanner-university-logo {
+  width: 200px;
+  overflow: hidden;
+  float: left;
+  margin-top: 12px;
+  margin-left: 21px;
+  margin-right: 20px;
+  height: 59px;
+}
+
+.course-topbanner-university-logo img {
+  max-height: 48px;
+  max-width: 200px;
+}
+
+.course-topbanner-header {
+  font-size: 16px;
+  line-height: 21px;
+  vertical-align: top;
+  margin-top: 13px;
+  margin-left: 26px;
+  margin-bottom: 0px;
+  height: 50px;
+  overflow: hidden;
+}
+ 
+.course-topbanner-name {
+  font-size: 18px;
+}
+ 
+.course-topbanner-instructor {
+  font-size: 15px;
+  font-weight: lighter;
+  white-space: nowrap;
+}
+
+.course-topbanner-side {
+  float: right;
+  margin-top: 12px;
+  margin-left: 20px;
+  margin-right: 20px;
+  min-width: 120px;
+  text-align: right;
+}
+
+.course-topbanner-side img {
+  height: 48px;
+  border: 1px solid #eee;
+}
+
+</style>
+<div class="course-topbanner">
+  <div class="course-topbanner-university-logo">
+    <a href="https://www.coursera.org/jhu" class="coursera-university-color">
+      <img src="https://www.coursera.org/maestro/api/course/294/university_logo">
+    </a>
+  </div>
+
+  
+  <h1 class="course-topbanner-header">
+      <a class="course-topbanner-name coursera-university-color" href="https://class.coursera.org/dataanalysis-001/class/index">
+        Data Analysis      </a>
+      <br>
+      <span class="course-topbanner-instructor">
+        by Jeff Leek      </span>
+  </h1>
+
+
+
+</div>
+    
+        <div class="container-fluid" style="position:relative;">
+        <div class="row-fluid">
+            <div id="course-page-sidebar">
+                <div class="course-navbar-container">
+		<a href="https://class.coursera.org/dataanalysis-001/class/index">
+	<img src="https://www.coursera.org//maestro/api/course/294/logo" style="width: 210px;height: 112px;margin: -15px 0px 8px 1px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35);">
+	</a>
+	<h2 class="hidden">Side Navigation Bar</h2>
+<ul class="course-navbar-list">
+		
+	<li class="course-navbar-item">
+								<a href="https://class.coursera.org/dataanalysis-001/class/index"  class="coursera-university-color">
+				
+				Home							</a>
+						</li>
+	
+		
+	<li class="course-navbar-item">
+								<a href="https://class.coursera.org/dataanalysis-001/lecture/index"  class="coursera-university-color">
+				
+				Video Lectures							</a>
+						</li>
+	
+		
+	<li class="course-navbar-item">
+								<a href="https://class.coursera.org/dataanalysis-001/forum/index"  class="coursera-university-color">
+				
+				Discussion Forums							</a>
+						</li>
+	
+		
+	<li class="course-navbar-item">
+								</li>
+	
+		
+	<li class="course-navbar-item">
+								<a href="https://class.coursera.org/dataanalysis-001/quiz/index"  class="coursera-university-color">
+				
+				Quizzes							</a>
+						</li>
+	
+		
+	<li class="course-navbar-item">
+								<a href="https://class.coursera.org/dataanalysis-001/human_grading/index"  class="coursera-university-color">
+				
+				Data Analysis Assignments							</a>
+						</li>
+	
+		
+	<li class="course-navbar-item">
+								</li>
+	
+		
+	<li class="course-navbar-item">
+								<a href="https://class.coursera.org/dataanalysis-001/wiki/view?page=courselogistics"  class="coursera-university-color">
+				
+				Course Logistics							</a>
+						</li>
+	
+		
+	<li class="course-navbar-item">
+								<a href="https://class.coursera.org/dataanalysis-001/wiki/view?page=syllabus"  class="coursera-university-color">
+				
+				Syllabus							</a>
+						</li>
+	
+		
+	<li class="course-navbar-item">
+								<a href="https://class.coursera.org/dataanalysis-001/wiki/view?page=aboutus"  class="coursera-university-color">
+				
+				About Us							</a>
+						</li>
+	
+	
+		<li class="course-navbar-item">
+		<a href="https://share.coursera.org/wiki/index.php/dataanalysis:Main" target="_blank" class="coursera-university-color">
+			Course Wiki
+			<span class="icon-share"></span>
+		</a>
+	</li>
+		
+		<li class="course-navbar-item">
+		<a href="http://www.meetup.com/Coursera/" target="_blank" class="coursera-university-color">
+			Join a Meetup
+			<span class="icon-share"></span>
+		</a>
+	</li>
+	</ul>
+
+</div>            </div>
+            <div id="course-page-content">
+                
+<h2 class="course-page-header">Peer Assessments</h2>
+<div><!-- Peer Assessments List Preamble Here --></div>
+<br>
+<div>
+
+    <iframe id="PeerAssessmentsEmbed" src="../wiki/view?page=PeerAssessmentsEmbed&minimal=1" frameborder="0" scrolling="no" style="width: 100%" height="400"></iframe>
+
+    <h3 class="hg-asst-list-title">Assignments</h3>
+    <div class="hg-asst-details-toggle control-group">
+        <label class="control-label" for="checkbox1">Details:</label>
+        <div id="normal-toggle-button">
+            <input id="checkbox1" type="checkbox">
+        </div>
+    </div>
+
+    <div class="hg-timezone">
+        <i class="icon-asterisk"></i> Timezone: <b><span id="hg-asst-timezone">America/Los_Angeles</span></b>
+    </div>
+
+    <ul class="hg-asst-list">
+                        <li class="hg-asst-list-item">
+                <div class="hg-asst-header">
+                    <span class="hg-asst-title">Data Analysis Project 1                                        </span>
+                    <a class="btn hg-go-to-button" href="https://class.coursera.org/dataanalysis-001/human_grading/view/courses/294/assessments/4">Go to assignment&nbsp;&nbsp;<i class="icon-chevron-right"></i></a>
+                </div>
+                <div class="hg-asst-line">
+                    <span class="hg-asst-interval-label">Submission</span>
+                    <span class="hg-asst-interval-part hg-asst-interval-open">
+                        <span class="hg-date" data-livetimer-date-primitive="1359950400000">Sun  3 Feb 2013  8:00 PM PST</span>
+                    </span>
+                    <span class="hg-asst-interval-part hg-asst-interval-close">
+                        <span class="hg-date" data-livetimer-date-primitive="1361188800000">Mon 18 Feb 2013  4:00 AM PST</span>
+                    </span>
+                                    </div>
+                <div class="hg-asst-line">
+                    <span class="hg-asst-interval-label">Evaluation</span>
+                    <span class="hg-asst-interval-part hg-asst-interval-open">
+                        <span class="hg-date" data-livetimer-date-primitive="1361192400000">Mon 18 Feb 2013  5:00 AM PST</span>
+                    </span>
+                    <span class="hg-asst-interval-part hg-asst-interval-close">
+                        <span class="hg-date" data-livetimer-date-primitive="1361766600000">Sun 24 Feb 2013  8:30 PM PST</span>
+                    </span>
+                                    </div>
+                <div class="hg-asst-line">
+                    <span class="hg-asst-interval-label">Results</span>
+                    <span class="hg-asst-interval-part hg-asst-interval-available hg-asst-interval-wide-column">
+                        <span class="hg-date" data-livetimer-date-primitive="1361770200000">Sun 24 Feb 2013  9:30 PM PST</span>
+                    </span>
+                </div>
+            </li>
+                            </ul>
+
+</div>
+            </div>
+        </div>
+    </div>
+        
+        <script src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/spark/spark.js"></script>
+    
+    <script src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/spark/core/js/profiles.js" type="text/javascript"></script>
+    <script src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/spark/core/js/modal_focus.js" type="text/javascript"></script>
+    <script src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/spark/core/js/get_query_parameters.js" type="text/javascript"></script>
+    <script src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/js/lib/cookie.js" type="text/javascript"></script>
+    <script src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/spark/core/js/signature_track.js" type="text/javascript"></script>
+    <script src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/spark/app/generic/js/item_list.js" type="text/javascript"></script>
+    <script src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/spark/app/generic/js/navbar.js" type="text/javascript"></script>
+
+    
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-28377374-1']);
+  _gaq.push(['_setDomainName', 'coursera.org']);
+  _gaq.push(['_setAllowLinker', true]);  
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+  window._204 = window._204 || [];
+  window._204.push({key:"pageview", val:{}});
+
+  (function()
+  {
+    var a = document.createElement('script'); a.type = 'text/javascript'; a.async = true;
+    a.src = 'https://eventing.coursera.org/204.min.js?client=spark&user=2241819';
+    var s = document.getElementsByTagName('script')[0];
+    s.parentNode.insertBefore(a, s);
+  })();
+
+</script>
+
+    <script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  
+  styleSheets: [],
+  styles: {},
+
+  jax: ["input/TeX"],
+  
+  extensions: ["tex2jax.js"],
+
+  preJax: null,
+  postJax: null,
+
+  preRemoveClass: "MathJax_Preview",
+
+  showProcessingMessages: true,
+
+  messageStyle: "none",
+  
+  displayAlign: "center",
+  displayIndent: "0em",
+  
+  delayStartupUntil: "none",
+
+  skipStartupTypeset: false,
+  
+  elements: [],
+  
+  tex2jax: {
+	    inlineMath: [
+	                 ['$$','$$'],      // uncomment this for standard TeX math delimiters
+	                 ['\\(','\\)']
+	                 ],
+
+	                 displayMath: [
+	                 ['\\[','\\]']
+	                 ],
+
+    skipTags: ["script","noscript","style","textarea","pre","code"],
+    ignoreClass: "tex2jax_ignore",
+    processClass: "tex2jax_process",
+    processEscapes: false,
+    processEnvironments: true,
+    preview: "TeX"
+    
+  },
+  
+  mml2jax: {
+    preview: "alttext"
+    
+  },
+  
+  jsMath2jax: {
+    preview: "TeX"
+    
+  },
+
+  TeX: {
+    TagSide: "right",
+    TagIndent: ".8em",
+    MultLineWidth: "85%",
+    Macros: {},
+
+    extensions: ["AMSmath.js", "AMSsymbols.js"]
+    
+  },
+
+  //============================================================================
+  //
+  //  These parameters control the MathML inupt jax.
+  //
+  MathML: {
+    //
+    //  This specifies whether to use TeX spacing or MathML spacing when the
+    //  HTML-CSS output jax is used.
+    //
+    useMathMLspacing: false
+  },
+  
+  //============================================================================
+  //
+  //  These parameters control the HTML-CSS output jax.
+  //
+  "HTML-CSS": {
+    
+    scale: 100,
+    
+    availableFonts: ["STIX","TeX"],
+    
+    preferredFont: "TeX",
+    
+    webFont: "TeX",
+    
+    imageFont: "TeX",
+    
+    undefinedFamily: "STIXGeneral,'Arial Unicode MS',serif",
+      
+    showMathMenu: true,
+
+    styles: {},
+    
+    tooltip: {
+      delayPost: 600,          // milliseconds delay before tooltip is posted after mouseover
+      delayClear: 600,         // milliseconds delay before tooltip is cleared after mouseout
+      offsetX: 10, offsetY: 5  // pixels to offset tooltip from mouse position
+    }
+  },
+  
+  //============================================================================
+  //
+  //  These parameters control the NativeMML output jax.
+  //
+  NativeMML: {
+
+    scale: 100,
+
+    showMathMenu: true,
+    showMathMenuMSIE: true,
+
+    styles: {}
+  },
+  
+  MathMenu: {
+    delay: 400,
+    
+    helpURL: "http://www.mathjax.org/help/user/",
+
+    showRenderer: true,
+    showFontMenu: false,
+    showContext:  false,
+
+    windowSettings: {
+      status: "no", toolbar: "no", locationbar: "no", menubar: "no",
+      directories: "no", personalbar: "no", resizable: "yes", scrollbars: "yes",
+      width: 100, height: 50
+    },
+    
+    styles: {}
+    
+  },
+
+  MMLorHTML: {
+    prefer: {
+      MSIE:    "MML",
+      Firefox: "MML",
+      Opera:   "HTML",
+      other:   "HTML"
+    }
+  }
+});
+</script>
+<script type="text/javascript">
+(function () {
+
+  function loadMathJax() {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://d2265nx4vomwra.cloudfront.net/2.1/MathJax.js";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  }
+
+  window.loadOrRefreshMathJax = function(domId) {
+    if (window.MathJax) {
+      if (domId) {
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub, domId]);
+      } else {
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+      }
+    } else {
+      loadMathJax();
+    }
+  }
+})();
+</script>
+    
+    <script type="text/javascript">
+
+        function hideMaintenanceMessage() {
+            $('#maintenance_message').hide();
+            document.cookie = "spark_maintmsghide_2=1;expires=0;path=/;";
+        }
+
+        var site_base_url = "https://www.coursera.org/";
+        var site_static_asset_url = "https://dt5zaw6a98blc.cloudfront.net/site-static/";
+        var spark_class_short_name = "dataanalysis";
+        var spark_class_id = 294;
+        var spark_class_url = "/dataanalysis-001";
+        var spark_signature_url = "https://class.coursera.org/dataanalysis-001/signature/";
+
+        var course_strings_name = "Data Analysis";
+        var student_full_name = "Roman Chyla";
+
+        $(document).ready(function() {
+            //$('.course-assignment-deadline').eventLinker();
+        });
+
+    </script>
+
+<script src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/spark/app/human_grading/js/list.js"></script>
+<script type="text/javascript" src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/js/lib/moment.js"></script>
+<script type="text/javascript" src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/js/lib/jquery.ui.widget.js"></script>
+<script type="text/javascript" src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/js/lib/jquery.cycle.js"></script>
+<script type="text/javascript" src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/js/lib/jquery.livetimer.js?v=1361064629"></script>
+<script src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/js/lib/bootstrap.tooltip.js?v=20121128"></script>
+<script type="text/javascript" src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/js/lib/bootstrap.popover.js?v=20121128"></script>
+<script type="text/javascript" src="https://dt5zaw6a98blc.cloudfront.net/site-static/2a73512a3331d2a1b6ccacbbfffa4b6465fb7fa9/bundles/bootstrap-toggle-buttons/jquery.toggle.buttons.js"></script>
+
+</body>
+
+</html>

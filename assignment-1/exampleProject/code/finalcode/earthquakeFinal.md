@@ -1,6 +1,8 @@
 Final Earthquake Analysis
 ========================
 
+Note: This analysis was created on a Mac. Some functions may be altered to be able to run on Windows machines. 
+
 ------
 
 ## Preliminaries
@@ -155,7 +157,8 @@ summary(quakes)
 ##  [16, 24):162   Median :1.01   Median :2013-01-27 16:23:43  
 ##  [24, 40):168   Mean   :1.05   Mean   :2013-01-28 00:06:33  
 ##  [40,598]:178   3rd Qu.:1.39   3rd Qu.:2013-01-29 20:31:49  
-##                 Max.   :2.77   Max.   :2013-01-31 20:19:09
+##                 Max.   :2.77   Max.   :2013-01-31 20:19:09  
+## 
 ```
 
 Latitude, longitude are within normal ranges. Magnitude has nothing above 7, depth is within the defined range. 
