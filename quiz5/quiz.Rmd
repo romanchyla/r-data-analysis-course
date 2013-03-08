@@ -1,0 +1,64 @@
+
+
+
+Fit an ANOVA model where the outcome is the number of breaks. 
+Fit an ANOVA model including the wool and tension variables 
+as covariates. What are the dgrees of freedom for the tension 
+variable and what is the F-statistic for tension after accounting 
+for the variation due to wool?
+
+```{r}
+data(warpbreaks)
+ao <- aov(warpbreaks$breaks ~ warpbreaks$wool + warpbreaks$tension)
+summary(ao)
+
+# the order doesn't matter
+ao2 <- aov(warpbreaks$breaks ~ warpbreaks$tension + warpbreaks$wool)
+summary(ao2)
+```
+
+## Question 2
+Suppose that the probability an event is true is 0.2. What are the log odds of that event?
+
+```{r}
+# Pr(True|Event) = 0.2
+log(0.2/(1.0-0.2))
+
+```
+
+## Q3
+
+Fit a Poisson regression model with the number of Satellites as the outcome and the width of the female as the covariate. What is the multiplicative change in the expected number of crabs for each additional centimeter of width?
+
+## Q4 
+
+What is the expected number of Satellites for a female of width 22cm?
+
+```{r}
+library(glm2)
+data(crabs)
+fit1 <- glm(crabs$Satellites ~ crabs$Width, family=poisson)
+summary(fit1)
+# what is the increase?
+exp(coef(fit1))
+
+plot(crabs$Width, fit1$fitted.values)
+fit1$fitted.values
+
+# merge the computed vals with width
+f <- cbind(fit1$fitted.values, crabs$Width)
+ff = f[order(f[,2]),] # reorder by width
+head(ff)
+```
+
+## Question 5
+
+Load the school absenteeism data set and fit a linear model relating the log of the number of days absent to the other variables with the commands:
+
+```{r}
+
+data(quine) 
+lm1 = lm(log(Days + 2.5) ~.,data=quine)
+step(lm1)
+```
+

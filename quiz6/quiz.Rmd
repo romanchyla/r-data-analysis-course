@@ -1,0 +1,39 @@
+Quiz 6
+========================================================
+
+fit a logistic regression model with Coronary Heart Disease (chd) as the outcome and age at onset, current alcohol consumption, obesity levels, cumulative tabacco, type-A behavior, and low density lipoprotein cholesterol as predictors. Calculate the misclassification rate for your model using this function and a prediction on the "response" scale: 
+
+```{r}
+library(ElemStatLearn)
+data(SAheart)
+set.seed(8484)
+train = sample(1:dim(SAheart)[1],size=dim(SAheart)[1]/2,replace=F)
+trainSA = SAheart[train,]
+testSA = SAheart[-train,]
+
+model <- glm(chd ~ age + alcohol + obesity + tobacco + typea + ldl, data=trainSA, family="binomial")
+
+summary(model)
+
+predictionTrain <- predict(model, trainSA, type="response")
+predictionTest <- predict(model, testSA, type="response")
+
+plot(model)
+plot(predictionTrain, predictionTest)
+
+missClass = function(values,prediction){sum(((prediction > 0.5)*1) != values)/length(values)}
+
+missClass(trainSA$chd, predictionTrain)
+missClass(testSA$chd, predictionTest)
+
+# hmmm, i don't understand what this really does (the answer is above though) -- maybe the cutoff function makes the difference...
+library(boot)
+
+testCv <- cv.glm(testSA,model,missClass,K=3)
+testCv$delta
+
+trainCv <- cv.glm(trainSA,model,missClass,K=3)
+trainCv$delta
+```
+
+

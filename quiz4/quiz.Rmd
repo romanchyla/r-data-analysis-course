@@ -1,0 +1,134 @@
+
+```{r}
+download.file('https://spark-public.s3.amazonaws.com/dataanalysis/movies.txt', './moviest.txt', method="wget")
+movies <- read.csv('./moviest.txt', sep='\t')
+```
+
+Fit a linear regression model by least squares where the Rotten Tomatoes score is the outcome and the box office gross is the only covariate. What is the regression coefficient for the slope and it's interpretation?
+
+```{r}
+lm1 <- lm(movies$score ~ movies$box.office)
+lm1
+boxplot(movies$score ~ movies$box.office)
+abline(lm1)
+```
+
+The regression coefficient is 0.09676. The interpretation is that an increase of one million dollars in box office gross is associated with a 0.09676 increase in Rotten Tomatoes Score.
+
+## Q2
+
+Fit a linear regression model by least squares where the Rotten Tomatoes score is the outcome and the box office gross is the only covariate. What is the 90% confidence interval for the intercept term and what can you deduce from the 90% confidence interval?
+
+```{r}
+confint(lm1, level=0.9)
+
+
+```
+A: The 90% confidence interval for the intercept is (47.52, 52.63). If we repeated this study 100 times, we would expect our calculated interval to cover the true value on average 90% of the time.
+
+CORRECT
+
+
+## Q3
+
+Fit a linear regression model by least squares where the Rotten Tomatoes score is the outcome and box office gross and running time are the covariates. What is the value for the regression coefficient for running time? How is it interpreted?
+
+```{r}
+lm1 <- lm(movies$score ~ movies$box.office + movies$running.time)
+summary(lm1)
+
+```
+
+The coefficient is 0.12752. That means that an increase of one minute in running time is associated with an average increase of 0.12752 in score.
+
+NOT!
+
+## Q4
+
+Fit a linear regression model by least squares where the Rotten Tomatoes score is the outcome and box office gross and running time are the covariates. Is running time a confounder for the relationship between Rotten Tomatoes score and box office gross? Why or why not?
+
+```{r}
+lm1 <- lm(movies$score ~ movies$box.office + movies$running.time)
+plot(lm1)
+plot(movies$score ~ movies$box.office, log="xy")
+plot(movies$score ~ movies$running.time, log="xy")
+summary(lm(movies$score ~ movies$running.time))
+plot(movies$box.office ~ movies$running.time, log="xy")
+
+```
+
+Yes running time is a confounder. It is correlated both with the Rotten Tomatoes score and the box office gross.
+
+
+Fit a linear regression model by least squares where the Rotten Tomatoes score is the outcome and box office gross and running time are the covariates. Make a plot of the movie running times versus movie score. Do you see any outliers? If you do, remove those data points and refit the same regression (Rotten Tomatoes score is the outcome and box office gross and running time are the covariates). What do you observe?
+
+```{r}
+lm1 <- lm(movies$score ~ movies$box.office + movies$running.time)
+plot(movies$running.time ~ movies$score)
+boxplot(movies$score)$out
+boxplot(movies$running.time)$out
+bp <- boxplot(movies$score ~ movies$running.time)
+s <- subset(movies, !movies$score %in% bp$out)
+summary(lm1)
+
+lm2 <- lm(s$score ~ s$box.office + s$running.time)
+summary(lm2)
+```
+
+A:Yes there are two outliers. After removing them and refitting the regression line, the running time coefficient has a larger magnitude and is more statistically significant.
+
+rca: I would say it is bigger, BUT less statistically significant. What i don't see???
+
+
+Fit a linear regression model by least squares where the Rotten Tomatoes score is the outcome and running time and box office gross are covariates. What is the P-value for running time and how is it interpreted?
+
+```{r}
+lm1 <- lm(movies$score ~ movies$box.office + movies$running.time)
+summary(lm1)
+```
+
+A: The P-value is 0.0187. It is the probability of observing a t-statistic as big as, or larger than, the one we saw, if there was no relationship between Rotten Tomatoes score and running time for a fixed box office gross.
+
+
+## Q7
+
+Fit a linear model by least squares where Rotten Tomatoes score is the outcome and the covariates are movie rating, running time, and an interaction between running time and rating are the covariates. What is the coefficient for the interaction between running time and the indicator/dummy variable for PG rating?
+
+```{r}
+lm1 <- lm(movies$score ~ movies$rating + movies$running.time + movies$running.time*movies$rating)
+summary(lm1)
+```
+
+A: The coefficient is -0.6901.
+
+CORRECT
+
+## Q8
+
+Fit a linear model by least squares where Rotten Tomatoes score is the outcome and the covariates are movie rating, running time, and an interaction between running time and rating are the covariates. What is the estimated average change in score for a PG movie for a one minute increase in running time?
+
+```{r}
+lm1 <- lm(movies$score ~ movies$rating + movies$running.time + movies$running.time*movies$rating)
+summary(lm1)
+```
+
+A: -0.6901 NOT CORR
+
+
+## Q9
+
+Load the data on number of breaks during weaving into R with the command:
+ data(warpbreaks)
+Fit a linear model where the outcome is the number of breaks and the covariate is tension. What is a 95% confidence interval for the average difference in number of breaks between medium and high tension?
+
+```{r}
+data(warpbreaks)
+lm1 <- lm(warpbreaks$breaks ~ warpbreaks$tension)
+confint(lm1)
+```
+
+A: (-17.95, -2.04) ? I really DO NOT understand this question
+
+## Q10
+
+XXX: There is not a statistically significant association. We may be skeptical this association could be used to reduce autism rates, since there are many possible explanations for the association that do not involve a direct relationship between organic foods and autism.
