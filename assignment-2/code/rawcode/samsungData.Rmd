@@ -1,0 +1,377 @@
+Exploratory analysis
+========================================================
+
+### Load libraries
+
+```{r}
+```
+
+Download the data, read the data in and save the raw data as an RDA file
+
+```{r data, cache=TRUE}
+setwd("/dvt/workspace/r-data-analysis-course/assignment-2")
+getwd()
+download.file("https://spark-public.s3.amazonaws.com/dataanalysis/samsungData.rda",destfile="./data/raw/data.rda",method="curl")
+dateDownloaded <- date()
+dateDownloaded
+load('./data/raw/data.rda')
+#load('./data/raw/samsungData.rda')
+save(samsungData,dateDownloaded,file="./data/raw/samsungData.rda")
+```
+
+Explore the data
+
+```{r explore, cache=TRUE}
+data <- samsungData
+#head(data)
+#summary(data)
+
+```
+
+ Each person performed six activities (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING) wearing a smartphone (Samsung Galaxy S II) on the waist.
+ 
+so, the gyroscope measures orientation
+accelerometer measures speed
+signals are captured in time (50Hz = 1s/50)
+Butterworth filter removes noise (spikes)
+linear acceleration = moving in line
+angular velocity = turning
+jerk = sensation of the sudden increase/decrease in speed http://en.wikipedia.org/wiki/Jerk_(physics)
+
+t... = time (tBodyAccJerkMag,)
+f... = frequency (ie. fBodyAccJerk-XYZ,)
+some signals are transformed into discrete signals (non-continuous) by the FastFourierTransform
+
+tBodyAcc-XYZ
+tGravityAcc-XYZ
+tBodyAccJerk-XYZ
+tBodyGyro-XYZ
+tBodyGyroJerk-XYZ
+tBodyAccMag
+tGravityAccMag
+tBodyAccJerkMag
+tBodyGyroMag
+tBodyGyroJerkMag
+fBodyAcc-XYZ
+fBodyAccJerk-XYZ
+fBodyGyro-XYZ
+fBodyAccMag
+fBodyAccJerkMag
+fBodyGyroMag
+fBodyGyroJerkMag
+
+But there are too many variables to explore one by one, i think let's try some k-nearest tree classification...
+
+```{r, cache=TRUE, fig.width=15}
+table(samsungData$activity)
+table(samsungData$subject)
+
+# first subject, average acceleration
+par(mfrow=c(1,2))
+numericActivity <- as.numeric(as.factor(samsungData$activity))[samsungData$subject==1]
+
+plot(samsungData[samsungData$subject==1,1],pch=19,col=numericActivity,ylab=names(samsungData)[1])
+plot(samsungData[samsungData$subject==1,2],pch=19,col=numericActivity,ylab=names(samsungData)[2])
+legend(150,-0.1,legend=unique(samsungData$activity),col=unique(numericActivity),pch=19)
+
+
+# we need to mofidy the col names
+names(samsungData) <- sapply(names(samsungData), function(x){gsub("[()]", "", gsub("[,-]", ".", x))})
+
+# also set the activity to be factor
+samsungData$activity <- as.numeric(as.factor(samsungData$activity))
+
+# get data for the first subject only
+single <- subset(samsungData, subject == 1)
+
+library(stringr)
+par(mfrow=c(2,3))
+par(xpd=TRUE)
+pNames = names(single)
+
+i = 1
+while (i < length(pNames)) {
+  n = pNames[i]
+  i = i + 1
+  if (str_detect(n, "band")) {
+    print("Skipping: " + n)
+  }
+  else {
+    plot(getElement(single, n), col=numericActivity, pch=19,xlab=n, bty="L", ylab="", cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+    legend("right", "top",legend=unique(single$activity),col=unique(numericActivity),pch=19)
+    # plot the fourier transform next to the continuous one
+    nn = paste("f", substr(n, 2, 300), sep="")
+    if (nn %in% pNames) {
+      pNames = pNames[pNames != nn]
+      plot(getElement(single, nn), col=numericActivity, pch=19,xlab=nn, bty="L", ylab="", cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+    legend("right", "top",legend=unique(single$activity),col=unique(numericActivity),pch=19)
+    }
+  }
+}
+
+```
+
+And then we'll be doing multiple factor linear regression
+```{r, cache=TRUE}
+
+# let's try automated search
+
+# i was getting this error:
+# Error in lm.fit(x, y, offset = offset, singular.ok = singular.ok, ...) : 
+#  NA/NaN/Inf in 'y'
+# In addition: Warning messages:
+# 1: In model.response(mf, "numeric") : NAs introduced by coercion
+# 2: In model.matrix.default(mt, mf, contrasts) :
+#  variable 'activity' converted to a factor
+#
+# and it turns out, it was because of the activity column
+# the good way to discover these columns is is.finite() 
+# but for a data.frame you have to use a different func call
+
+is.finite.data.frame <- function(obj){
+    sapply(obj,FUN = function(x) all(is.finite(x)))
+}
+
+# lets try to find the best set of parameters
+single$subject <- NULL #remove the subject column
+single$activity <- as.numeric(as.factor(single$activity))
+
+single = single[is.finite.data.frame(single)]
+d = na.omit(single)
+
+lm1 = lm(activity ~ tBodyAcc.mean.X + tBodyAcc.mean.Y + tBodyAcc.mean.Z, data = single)
+lm1 = lm(activity ~ ., data = single)
+#cor(single)
+summary(lm1)
+sink("/dev/null")
+slm1 = step(lm1)
+sink()
+summary(slm1)
+
+# Error in step(lm1) : 
+#  AIC is -infinity for this model, so 'step' cannot proceed
+# We have lieanrly dependent data in out set, looking at the 
+# plots it seems it is better to work with the fBody...
+
+pNames = names(single)
+for (n in pNames) {
+  if (str_detect(n, "tBody") || str_detect(n, ".sma") ||
+        str_detect(n, ".bandsEnergy")) {
+    pNames = pNames[pNames != n]
+  }
+}
+newSingle = single[pNames]
+
+lm1 = lm(activity ~ ., data = newSingle)
+summary(lm1)
+
+#sink("/dev/null"); slm1 = step(lm1); sink()
+
+summary(slm1)
+
+#kClust <- kmeans(single$tBodyAcc.mean.X,centers=6)
+#table(kClust$cluster,single$activity)
+```
+
+```{r cache=TRUE}
+
+# automated selection sucks...
+# thee are hand-picked
+lm1 = lm(activity ~ fBodyAcc.mean.X + tBodyAcc.max.X + tBodyAcc.energy.X + tGravityAcc.mean.X + tGravityAcc.mean.Y + tGravityAcc.max.X + tGravityAcc.max.Y + tGravityAcc.energy.X + tGravityAcc.energy.X + fBodyAccJerk.mean.X + fBodyAccJerk.mean.Y + fBodyAccJerk.mean.Z + fBodyAccJerk.sma + fBodyAccJerk.energy.X + tBodyGyro.mean.Y + tBodyGyro.max.Y + tBodyGyro.energy.Y + fBodyAccMag.mean + fBodyAccMag.sma + tBodyGyroJerkMag.mean, data=single)
+summary(lm1)
+
+slm1 = step(lm1)
+summary(slm1)
+
+pred = sapply(predict(slm1, data=single), function(x) min(round(x), 6))
+library("medley")
+rmse(pred, single$activity)
+
+data = subset(samsungData, subject == 3)
+lm2 = lm(formula = activity ~ tBodyAcc.max.X + tBodyAcc.energy.X + 
+    tGravityAcc.mean.X + tGravityAcc.mean.Y + tGravityAcc.max.Y + 
+    tGravityAcc.energy.X + fBodyAccJerk.mean.X + fBodyAccJerk.mean.Y + 
+    fBodyAccJerk.energy.X + tBodyGyro.mean.Y + tBodyGyro.max.Y + 
+    tBodyGyro.energy.Y + tBodyGyroJerkMag.mean, data = data)
+pred = sapply(predict(lm2, data=data), function(x) min(round(x), 6))
+rmse(pred, data$activity)
+
+```
+
+
+```{r cache=TRUE}
+# test the model
+# 1, 3, 5, and 6.  But you may use more subjects data to train if you wish. Your test set is the data from subjects 27, 28, 29, and 30
+
+
+testS = samsungData$subject %in% c(27,28,29,30)
+testSet = samsungData[testS,]
+trainSet = samsungData[-testS,]
+
+lm1 = lm(formula = activity ~ tBodyAcc.max.X + tBodyAcc.energy.X + 
+    tGravityAcc.mean.X + tGravityAcc.mean.Y + tGravityAcc.max.Y + 
+    tGravityAcc.energy.X + fBodyAccJerk.mean.X + fBodyAccJerk.mean.Y + 
+    fBodyAccJerk.energy.X + tBodyGyro.mean.Y + tBodyGyro.max.Y + 
+    tBodyGyro.energy.Y + tBodyGyroJerkMag.mean, data = trainSet)
+
+summary(lm1)
+
+
+
+library("MASS")
+library(tree)
+library(e1071)
+# different models comparison
+
+#hand-picked
+lm0 = lm(activity ~ fBodyAcc.mean.X + tBodyAcc.max.X + tBodyAcc.energy.X + tGravityAcc.mean.X + tGravityAcc.mean.Y + tGravityAcc.max.X + tGravityAcc.max.Y + tGravityAcc.energy.X + tGravityAcc.energy.X + fBodyAccJerk.mean.X + fBodyAccJerk.mean.Y + fBodyAccJerk.mean.Z + fBodyAccJerk.energy.X + tBodyGyro.mean.Y + tBodyGyro.max.Y + tBodyGyro.energy.Y + fBodyAccMag.mean + tBodyGyroJerkMag.mean, data=trainSet)
+
+# hand-picked rlm()
+glm1 = rlm(activity ~ fBodyAcc.mean.X + tBodyAcc.max.X + tBodyAcc.energy.X + tGravityAcc.mean.X + tGravityAcc.mean.Y + tGravityAcc.max.X + tGravityAcc.max.Y + tGravityAcc.energy.X + tGravityAcc.energy.X + fBodyAccJerk.mean.X + fBodyAccJerk.mean.Y + fBodyAccJerk.mean.Z + fBodyAccJerk.energy.X + tBodyGyro.mean.Y + tBodyGyro.max.Y + tBodyGyro.energy.Y + fBodyAccMag.mean + tBodyGyroJerkMag.mean, data=trainSet)
+
+# automatically selected by step()
+glm2 = glm(formula = activity ~ tBodyAcc.max.X + tBodyAcc.energy.X + 
+    tGravityAcc.mean.X + tGravityAcc.mean.Y + tGravityAcc.max.Y + 
+    tGravityAcc.energy.X + fBodyAccJerk.mean.X + fBodyAccJerk.mean.Y + 
+    fBodyAccJerk.energy.X + tBodyGyro.mean.Y + tBodyGyro.max.Y + 
+    tBodyGyro.energy.Y + tBodyGyroJerkMag.mean, data = trainSet, family="gaussian")
+
+
+glm3 = rlm(formula = activity ~ tBodyAcc.max.X + tBodyAcc.energy.X + 
+    tGravityAcc.mean.X + tGravityAcc.mean.Y + tGravityAcc.max.Y + 
+    tGravityAcc.energy.X + fBodyAccJerk.mean.X + fBodyAccJerk.mean.Y + 
+    fBodyAccJerk.energy.X + tBodyGyro.mean.Y + tBodyGyro.max.Y + 
+    tBodyGyro.energy.Y + tBodyGyroJerkMag.mean, data = trainSet)
+
+
+pred0 = sapply(predict(lm0, newdata=trainSet), function(x) max(1, min(round(x), 6)))
+pred_0 = sapply(predict(lm0, newdata=testSet), function(x) max(1, min(round(x), 6)))
+rmse(pred0, trainSet$activity)
+rmse(pred_0, testSet$activity)
+
+pred0 = sapply(predict(glm1, newdata=trainSet), function(x) max(1, min(round(x), 6)))
+pred1 = sapply(predict(glm1, newdata=testSet), function(x) max(1, min(round(x), 6)))
+rmse(pred0, trainSet$activity)
+rmse(pred1, testSet$activity)
+
+pred0 = sapply(predict(glm2, newdata=trainSet), function(x) max(1, min(round(x), 6)))
+pred2 = sapply(predict(glm2, newdata=testSet), function(x) max(1, min(round(x), 6)))
+rmse(pred0, trainSet$activity)
+rmse(pred2, testSet$activity)
+
+pred0 = sapply(predict(glm3, newdata=trainSet), function(x) max(1, min(round(x), 6)))
+pred3 = sapply(predict(glm3, newdata=testSet), function(x) max(1, min(round(x), 6)))
+rmse(pred0, trainSet$activity)
+rmse(pred3, testSet$activity)
+
+
+# now try the decision tree
+
+tree1 <- tree(formula = as.factor(activity) ~ tBodyAcc.max.X + tBodyAcc.energy.X + 
+    tGravityAcc.mean.X + tGravityAcc.mean.Y + tGravityAcc.max.Y + 
+    tGravityAcc.energy.X + fBodyAccJerk.mean.X + fBodyAccJerk.mean.Y + 
+    fBodyAccJerk.energy.X + tBodyGyro.mean.Y + tBodyGyro.max.Y + 
+    tBodyGyro.energy.Y + tBodyGyroJerkMag.mean, data = trainSet)
+summary(tree1)
+plot(tree1)
+text(tree1)
+
+pred0 = apply(predict(tree1, newdata=trainSet), 1, function(x)  which(x == max(x)))
+pred4 = apply(predict(tree1, newdata=testSet), 1, function(x)  which(x == max(x)))
+rmse(pred0, trainSet$activity)
+rmse(pred4, testSet$activity)
+
+
+# remove some features and train again
+xxx = trainSet[,pNames]
+tree2 <- tree(formula = as.factor(activity) ~ ., data = xxx)
+summary(tree2)
+plot(tree2)
+text(tree2)
+
+pred0 = apply(predict(tree2, newdata=trainSet), 1, function(x)  which(x == max(x)))
+pred5 = apply(predict(tree2, newdata=testSet), 1, function(x)  which(x == max(x)))
+rmse(pred0, trainSet$activity)
+rmse(pred5, testSet$activity)
+
+
+svm1 <- svm(as.factor(activity) ~ ., data = xxx)
+pred0 <- as.numeric(predict(svm1, newdata=xxx))
+pred6 <- as.numeric(predict(svm1, newdata=testSet))
+
+rmse(pred0, trainSet$activity)
+rmse(pred6, testSet$activity)
+
+
+table(testSet$activity, pred_0) # lm - hand-picked
+rmse(pred_0, testSet$activity)
+table(testSet$activity, pred1) # rlm - hand-picked
+rmse(pred1, testSet$activity)
+table(testSet$activity, pred2) # glm - filtered by step()
+rmse(pred2, testSet$activity)
+table(testSet$activity, pred3) # rlm - filtered by step()
+rmse(pred3, testSet$activity)
+table(testSet$activity, pred4) # tree with all features
+rmse(pred4, testSet$activity)
+table(testSet$activity, pred5) # tree with selected features
+rmse(pred5, testSet$activity)
+table(testSet$activity, pred6) # svm
+rmse(pred6, testSet$activity)
+
+```
+
+```{r final}
+all_vall = data.frame(activity=testSet$activity, lm0=pred_0, rlm0=pred1, glm1=pred2, rlm1=pred3, treeAll=pred4, treeSel=pred5, svm=pred6)
+# sort by activity
+all_vall = all_vall[order(all_vall[,1]),]
+library("ROCR")
+
+fr <- function(all) {
+  print(paste("class=", unique(all$activity)))
+  pr_data = list(c(1:length(all)-1))
+  f_vals = rep(0,length(all))
+  for (i in 1:(length(all)-1)) {
+    if (length(unique(as.numeric(all[,i] == all[,1]))) == 1) {
+      pr_data[[i]] = list(x=rep(1,7), y=rep(1,7), rmse=rmse(all[,i], all$activity), f=1)
+      print(paste("i=", i, "f= 1"))
+      f_vals[[i]] = 1
+      next
+    }
+    pred = prediction(all[,i], as.numeric(all[,i] == all[,1]))
+    perf = performance(pred, "prec", "rec")
+    #plot(perf)
+    
+    perf2 = performance(pred, "prec", "f")
+    #plot(perf)
+    
+    pr_data[[i]] = list(x=perf@x.values, y=perf@y.values, rmse=rmse(all[,i], all$activity), f=perf2@x.values)
+    f_vals[[i]] <- perf2@x.values[[1]][[length(perf2@x.values[[1]])]]
+    print(paste("i=", i, "f=", perf2@x.values[[1]][[length(perf2@x.values[[1]])]]))
+  }
+  pr_data
+  f_vals
+}
+
+for (i in 2:length(all)-1) {
+  print(paste(names(all)[i], sum(all[,i] == all$activity)/ length(all$activity)))
+}
+
+# collect values for each class
+collData <- by(all_vall, all_vall$activity, fr, simplify=TRUE)
+da = simplify2array(collData)
+
+top = da[c(2:7),]
+top = as.data.frame(top)
+head(top)
+top$id = c(1:length(top[,1])) 
+
+melted = melt(top, id.vars = "id")
+
+ggplot(melted, aes(x = variable, y = value, colour = id, group=id)) + geom_line() + scale_x_discrete("Tasks",breaks = c(1:6), labels = c("laying","sitting", "standing", "walk", "walkdown", "walkup")) + scale_y_continuous("F-score")
+#geom_text(aes(label=id))
+
+# interesting graph showing variance in classes
+plot(melted$variable, melted$value)
+
+plot(melted$variable, melted$value, pch=19)
+```
